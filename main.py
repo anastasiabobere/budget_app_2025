@@ -124,20 +124,18 @@ def get_summary():
         "budget_limit": budget_limit
     })
 
-# GUI Application
+# GUI 
 class BudgetApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Budžeta lietojumprogramma")
+        self.root.title("Budžeta apskāts")
         self.root.geometry("1000x800")
         self.root.configure(bg='#f0f0f0')
-        
         self.style = ttk.Style()
         self.style.theme_use('clam')
         self.style.configure('TButton', font=('Arial', 12), padding=5)
         self.style.configure('Treeview', rowheight=30)
         self.style.map('Treeview', background=[('selected', '#007bff')])
-        
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
         self.create_login_widgets()
@@ -149,7 +147,7 @@ class BudgetApp:
         login_frame = tk.Frame(self.root, bg='#f0f0f0')
         login_frame.pack(expand=True, fill=tk.BOTH, padx=50, pady=50)
         
-        tk.Label(login_frame, text="Budžeta lietojumprogramma", font=('Arial', 24, 'bold'), 
+        tk.Label(login_frame, text="Budžeta apskāts", font=('Arial', 24, 'bold'), 
                 bg='#f0f0f0', fg='#333').pack(pady=20)
         
         form_frame = tk.Frame(login_frame, bg='#f0f0f0')
@@ -166,7 +164,7 @@ class BudgetApp:
         btn_frame = tk.Frame(login_frame, bg='#f0f0f0')
         btn_frame.pack(pady=20)
         
-        tk.Button(btn_frame, text="Reģstrācija", command=self.register, 
+        tk.Button(btn_frame, text="Reģistrācija", command=self.register, 
                  font=('Arial', 12), bg='#007bff', fg='white', width=12).pack(side=tk.LEFT, padx=10)
         tk.Button(btn_frame, text="Ienākt", command=self.login, 
                  font=('Arial', 12), bg='#28a745', fg='white', width=12).pack(side=tk.LEFT, padx=10)
@@ -561,10 +559,10 @@ class BudgetApp:
         
         # Add summary
         pdf.setFont("Helvetica-Bold", 14)
-        pdf.drawString(72, height - 550, "Financial Summary:")
+        pdf.drawString(72, height - 550, "Finānšu analīze:")
         pdf.setFont("Helvetica", 12)
-        pdf.drawString(72, height - 570, f"Total Income: {self.total_income_label.cget('text')}")
-        pdf.drawString(72, height - 590, f"Total Expenses: {self.total_expense_label.cget('text')}")
+        pdf.drawString(72, height - 570, f"Ienākumu summa: {self.total_income_label.cget('text')}")
+        pdf.drawString(72, height - 590, f"Izdevuma summa: {self.total_expense_label.cget('text')}")
         pdf.drawString(72, height - 610, f"Balance: {self.balance_label.cget('text')}")
         
         pdf.save()
