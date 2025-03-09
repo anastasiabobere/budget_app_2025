@@ -13,14 +13,18 @@
 
 ## Manuāli instalējiet šīs atkarības, izmantojot komandas:
 
-- pip install flask pandas matplotlib requests reportlab tkinter sqlite3
+- pip install flask pandas matplotlib requests reportlab  
 
 ## Papildus iebūvētās bibliotēkas, kas jau ir Python standartbibliotēkā un nav jāinstalē:
 - datetime
 
+-sqlite3
+
 - threading
 
 - os
+
+- tkinter
 
 ## Lai palaistu lietotni, atveriet termināli vai komandrindu un izpildiet komandu:
 
