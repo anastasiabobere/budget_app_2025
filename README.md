@@ -12,7 +12,7 @@
 
 ## Manuāli instalējiet šīs atkarības, izmantojot komandas:
 
-- pip install flask pandas matplotlib requests reportlab  
+- pip install flask pandas matplotlib requests reportlab bcrypt
 
 ## Papildus iebūvētās bibliotēkas, kas jau ir Python standartbibliotēkā un nav jāinstalē:
 - datetime
