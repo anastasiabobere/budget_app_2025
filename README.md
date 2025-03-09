@@ -8,7 +8,6 @@
 
 - Instalēt nepieciešamās atkarības.
 
-- Atkarību instalēšana
 
 
 ## Manuāli instalējiet šīs atkarības, izmantojot komandas:
