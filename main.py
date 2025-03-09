@@ -12,16 +12,18 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Table, TableStyle, Image
 from reportlab.lib import colors
+import bcrypt
 
 # Database Setup
 def init_db():
     conn = sqlite3.connect("budget.db")
     c = conn.cursor()
-    
+ 
+
     c.execute('''CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL)''')
+                password TEXT NOT NULL CHECK(length(password) >= 60))''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS transactions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -128,7 +130,7 @@ def get_summary():
 class BudgetApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Budžeta apskāts")
+        self.root.title("Budžeta pārvaldības sistēma")
         self.root.geometry("1000x800")
         self.root.configure(bg='#f0f0f0')
         self.style = ttk.Style()
@@ -170,31 +172,65 @@ class BudgetApp:
                  font=('Arial', 12), bg='#28a745', fg='white', width=12).pack(side=tk.LEFT, padx=10)
 
     def register(self):
-        username = self.username_var.get()
-        password = self.password_var.get()
+        username = self.username_var.get().strip()  
+        password = self.password_var.get().strip()
+        
+
+        if not username or not password:
+            messagebox.showerror("Kļūda", "Lietotājvārds un parole nedrīkst būt tukši!")
+            return
+            
+        if len(username) < 3:
+            messagebox.showerror("Kļūda", "Lietotājvārdam jābūt vismaz 3 simbolus garam!")
+            return
+            
+        if len(password) < 6:
+            messagebox.showerror("Kļūda", "Parolei jābūt vismaz 6 simbolus garai!")
+            return
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
         conn = sqlite3.connect("budget.db")
         c = conn.cursor()
         try:
-            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password.decode('utf-8')))
             conn.commit()
-            messagebox.showinfo("Success", "Veiksmigi reģistrējies!")
+            messagebox.showinfo("Veiksmīgi", "Reģistrācija veiksmīga!")
         except sqlite3.IntegrityError:
-            messagebox.showerror("Error", " Lietotājvārds jau eksistē!")
-        conn.close()
+            messagebox.showerror("Kļūda", "Lietotājvārds jau eksistē!")
+        finally:
+            conn.close()
     
     def login(self):
-        username = self.username_var.get()
-        password = self.password_var.get()
-        conn = sqlite3.connect("budget.db")
-        c = conn.cursor()
-        c.execute("SELECT id FROM users WHERE username = ? AND password = ?", (username, password))
-        user = c.fetchone()
-        conn.close()
-        if user:
-            self.user_id = user[0]
-            self.open_budget_window()
-        else:
-            messagebox.showerror("Error", "Nepareizs lietotājvārds vai parole!")
+        username = self.username_var.get().strip()
+        password = self.password_var.get().strip()
+
+        if not username or not password:
+            messagebox.showerror("Kļūda", "Lūdzu aizpildiet abus laukus!")
+            return
+
+        try:
+            conn = sqlite3.connect("budget.db")
+            c = conn.cursor()
+            c.execute("SELECT id, password FROM users WHERE username = ?", (username,))
+            user = c.fetchone()
+            conn.close()
+
+            if user:
+               
+                stored_hash = user[1].encode('utf-8') 
+                
+                if bcrypt.checkpw(password.encode('utf-8'), stored_hash):
+                    self.user_id = user[0]
+                    self.open_budget_window()
+                else:
+                    messagebox.showerror("Kļūda", "Nepareiza parole!")
+            else:
+                messagebox.showerror("Kļūda", "Lietotājs neeksistē!")
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Datubāzes kļūda", f"Tehniskā kļūda: {str(e)}")
+        except Exception as e:
+            messagebox.showerror("Kritiskā kļūda", f"Negaidīta kļūda: {str(e)}")
     
     def open_budget_window(self):
         for widget in self.root.winfo_children():
@@ -212,7 +248,7 @@ class BudgetApp:
         tk.Label(input_frame, text="Summa(€) ", font=('Arial', 12), bg='#f0f0f0').grid(row=0, column=0, padx=5)
         tk.Entry(input_frame, textvariable=self.amount_var, font=('Arial', 12), width=15).grid(row=0, column=1, padx=5)
         
-        tk.Label(input_frame, text="Aprāksts", font=('Arial', 12), bg='#f0f0f0').grid(row=0, column=2, padx=5)
+        tk.Label(input_frame, text="Apraksts", font=('Arial', 12), bg='#f0f0f0').grid(row=0, column=2, padx=5)
         tk.Entry(input_frame, textvariable=self.desc_var, font=('Arial', 12), width=30).grid(row=0, column=3, padx=5)
         
         btn_frame = tk.Frame(input_frame, bg='#f0f0f0')
@@ -283,7 +319,7 @@ class BudgetApp:
                  font=('Arial', 12), bg='#28a745', fg='white').pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Eksportēt PDF", command=self.export_pdf,
                  font=('Arial', 12), bg='#dc3545', fg='white').pack(side=tk.LEFT, padx=5)
-        tk.Button(control_frame, text="Iziett", command=self.logout, 
+        tk.Button(control_frame, text="Iziet", command=self.logout, 
                  font=('Arial', 12), bg='#6c757d', fg='white').pack(side=tk.LEFT, padx=5)
         
         self.load_transactions()
