@@ -14,7 +14,7 @@ from reportlab.platypus import Table, TableStyle, Image
 from reportlab.lib import colors
 import bcrypt
 
-# Database Setup
+# Databaze izveide
 def init_db():
     conn = sqlite3.connect("budget.db")
     c = conn.cursor()
@@ -424,14 +424,14 @@ class BudgetApp:
         fig = plt.Figure(figsize=(12, 8), dpi=100)
         fig.suptitle("Finanšu analīze", fontsize=16)
         
-        # Pie Chart
+       
         ax1 = fig.add_subplot(221)
         ax1.set_title("Ienākums un Izdevumi")
         labels = ['Ienākums', 'Izdevums']
         sizes = [data['total_income'], data['total_expense']]
         ax1.pie(sizes, labels=labels, autopct='%1.1f%%', colors=['#28a745', '#dc3545'])
         
-        # Recent Transactions Bar Chart
+   
         ax2 = fig.add_subplot(222)
         ax2.set_title("Pedēji  transakcijas")
         transactions = data['monthly_data'][-5:][::-1]
@@ -440,7 +440,7 @@ class BudgetApp:
         ax2.bar(labels, amounts, color='#007bff')
         ax2.tick_params(axis='x', rotation=45)
         
-        # Monthly Trends Line Chart
+    
         ax3 = fig.add_subplot(212)
         ax3.set_title("Menēša tendences")	
         months = [t[0] for t in data['monthly_data']]
@@ -562,15 +562,15 @@ class BudgetApp:
         fig.savefig(chart_path)
         plt.close()
         
-        # Create PDF
+      
         pdf = canvas.Canvas(file_path, pagesize=letter)
         width, height = letter
         
-        # Header
+        
         pdf.setFont("Helvetica-Bold", 16)
         pdf.drawString(72, height - 72, "Budget Report")
         
-        # Transaction Table
+       
         pdf.setFont("Helvetica", 12)
         data = [["Date", "Type", "Amount", "Description"]]
         for row in transactions[1:]:
@@ -590,19 +590,19 @@ class BudgetApp:
         table.wrapOn(pdf, width-144, height)
         table.drawOn(pdf, 72, height - 200)
         
-        # Add chart
+       
         pdf.drawImage(chart_path, 72, height - 500, width=400, height=300)
         
-        # Add summary
+     
         pdf.setFont("Helvetica-Bold", 14)
-        pdf.drawString(72, height - 550, "Finānšu analīze:")
+        pdf.drawString(72, height - 550, "Finansu analize:")
         pdf.setFont("Helvetica", 12)
-        pdf.drawString(72, height - 570, f"Ienākumu summa: {self.total_income_label.cget('text')}")
+        pdf.drawString(72, height - 570, f"Ienakumu summa: {self.total_income_label.cget('text')}")
         pdf.drawString(72, height - 590, f"Izdevuma summa: {self.total_expense_label.cget('text')}")
         pdf.drawString(72, height - 610, f"Balance: {self.balance_label.cget('text')}")
         
         pdf.save()
-        messagebox.showinfo("Success", "PDF report generated successfully!")
+        messagebox.showinfo("Success", "PDF ir veiksmigi ģenerets!")
 
     def logout(self):
         self.user_id = None
