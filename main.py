@@ -567,28 +567,25 @@ class BudgetApp:
         if not file_path:
             return
         
-        # Generate chart in memory
         fig = plt.Figure(figsize=(8, 6))
         ax = fig.add_subplot(111)
         ax.pie([self.total_income_label.cget("text")[1:], self.total_expense_label.cget("text")[1:]], 
             labels=['Ienākumi', 'Izdevumi'], autopct='%1.1f%%', colors=['#28a745', '#dc3545'])
         ax.set_title("Ienākumi un Izdevumi")
         
-        # Save chart to a BytesIO object
         from io import BytesIO
         chart_buffer = BytesIO()
         fig.savefig(chart_buffer, format='png')
-        chart_buffer.seek(0)  # Reset buffer position to the beginning
+        chart_buffer.seek(0)  
         
-        # Create PDF
         pdf = canvas.Canvas(file_path, pagesize=letter)
         width, height = letter
         
-        # Header
+
         pdf.setFont("Helvetica-Bold", 16)
         pdf.drawString(72, height - 72, "Finanses")
         
-        # Transaction Table
+
         pdf.setFont("Helvetica", 12)
         data = [["Date", "Type", "Amount", "Description"]]
         for row in transactions[1:]:
@@ -608,10 +605,8 @@ class BudgetApp:
         table.wrapOn(pdf, width-144, height)
         table.drawOn(pdf, 72, height - 200)
         
-        # Add chart directly from buffer
         pdf.drawImage(chart_buffer, 72, height - 500, width=400, height=300)
         
-        # Add summary
         pdf.setFont("Helvetica-Bold", 14)
         pdf.drawString(72, height - 550, "Finansu analīze:")
         pdf.setFont("Helvetica", 12)
