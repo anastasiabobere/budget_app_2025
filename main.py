@@ -466,13 +466,28 @@ class BudgetApp:
         conn = sqlite3.connect("budget.db")
         c = conn.cursor()
         try:
-            c.execute('''INSERT OR REPLACE INTO budget_limits 
-                       (user_id, month_year, limit_amount) 
-                       VALUES (?, ?, ?)''', 
-                       (self.user_id, current_month, limit))
+      
+            c.execute('''SELECT id FROM budget_limits 
+                    WHERE user_id = ? AND month_year = ?''', 
+                    (self.user_id, current_month))
+            existing_limit = c.fetchone()
+            
+            if existing_limit:
+                
+                c.execute('''UPDATE budget_limits 
+                        SET limit_amount = ?
+                        WHERE id = ?''', 
+                        (limit, existing_limit[0]))
+            else:
+              
+                c.execute('''INSERT INTO budget_limits 
+                        (user_id, month_year, limit_amount) 
+                        VALUES (?, ?, ?)''', 
+                        (self.user_id, current_month, limit))
+            
             conn.commit()
-            messagebox.showinfo("Success", "Budžeta limits ir nomainits!")
-            self.load_transactions()
+            messagebox.showinfo("Success", "Budžeta limits ir nomainīts!")
+            self.load_transactions()  
         except Exception as e:
             messagebox.showerror("Error", str(e))
         finally:
@@ -534,14 +549,14 @@ class BudgetApp:
         conn = sqlite3.connect("budget.db")
         c = conn.cursor()
         c.execute('''SELECT date, type, amount, description 
-                   FROM transactions WHERE user_id = ?''', (self.user_id,))
+                FROM transactions WHERE user_id = ?''', (self.user_id,))
         transactions = [("Date", "Type", "Amount", "Description")] + c.fetchall()
         
         c.execute('''SELECT strftime('%Y-%m', date) as month,
-                   SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as income,
-                   SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as expense
-                   FROM transactions WHERE user_id = ?
-                   GROUP BY month ORDER BY month''', (self.user_id,))
+                SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as income,
+                SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as expense
+                FROM transactions WHERE user_id = ?
+                GROUP BY month ORDER BY month''', (self.user_id,))
         monthly_data = [("Month", "Income", "Expense")] + c.fetchall()
         conn.close()
         
@@ -552,25 +567,28 @@ class BudgetApp:
         if not file_path:
             return
         
-        # Generate charts
+        # Generate chart in memory
         fig = plt.Figure(figsize=(8, 6))
         ax = fig.add_subplot(111)
         ax.pie([self.total_income_label.cget("text")[1:], self.total_expense_label.cget("text")[1:]], 
-              labels=['Ienākumi', 'Izdevumi'], autopct='%1.1f%%', colors=['#28a745', '#dc3545'])
+            labels=['Ienākumi', 'Izdevumi'], autopct='%1.1f%%', colors=['#28a745', '#dc3545'])
         ax.set_title("Ienākumi un Izdevumi")
-        chart_path = "temp_chart.png"
-        fig.savefig(chart_path)
-        plt.close()
         
-      
+        # Save chart to a BytesIO object
+        from io import BytesIO
+        chart_buffer = BytesIO()
+        fig.savefig(chart_buffer, format='png')
+        chart_buffer.seek(0)  # Reset buffer position to the beginning
+        
+        # Create PDF
         pdf = canvas.Canvas(file_path, pagesize=letter)
         width, height = letter
         
-        
+        # Header
         pdf.setFont("Helvetica-Bold", 16)
-        pdf.drawString(72, height - 72, "Budget Report")
+        pdf.drawString(72, height - 72, "Finanses")
         
-       
+        # Transaction Table
         pdf.setFont("Helvetica", 12)
         data = [["Date", "Type", "Amount", "Description"]]
         for row in transactions[1:]:
@@ -590,19 +608,19 @@ class BudgetApp:
         table.wrapOn(pdf, width-144, height)
         table.drawOn(pdf, 72, height - 200)
         
-       
-        pdf.drawImage(chart_path, 72, height - 500, width=400, height=300)
+        # Add chart directly from buffer
+        pdf.drawImage(chart_buffer, 72, height - 500, width=400, height=300)
         
-     
+        # Add summary
         pdf.setFont("Helvetica-Bold", 14)
-        pdf.drawString(72, height - 550, "Finansu analize:")
+        pdf.drawString(72, height - 550, "Finansu analīze:")
         pdf.setFont("Helvetica", 12)
-        pdf.drawString(72, height - 570, f"Ienakumu summa: {self.total_income_label.cget('text')}")
-        pdf.drawString(72, height - 590, f"Izdevuma summa: {self.total_expense_label.cget('text')}")
-        pdf.drawString(72, height - 610, f"Balance: {self.balance_label.cget('text')}")
+        pdf.drawString(72, height - 570, f"Ienākumu summa: {self.total_income_label.cget('text')}")
+        pdf.drawString(72, height - 590, f"Izdevumu summa: {self.total_expense_label.cget('text')}")
+        pdf.drawString(72, height - 610, f"Atlikums: {self.balance_label.cget('text')}")
         
         pdf.save()
-        messagebox.showinfo("Success", "PDF ir veiksmigi ģenerets!")
+        messagebox.showinfo("Success", "PDF ir veiksmīgi ģenerēts!")
 
     def logout(self):
         self.user_id = None
