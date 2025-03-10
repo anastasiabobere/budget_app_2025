@@ -556,8 +556,8 @@ class BudgetApp:
         fig = plt.Figure(figsize=(8, 6))
         ax = fig.add_subplot(111)
         ax.pie([self.total_income_label.cget("text")[1:], self.total_expense_label.cget("text")[1:]], 
-              labels=['Income', 'Expenses'], autopct='%1.1f%%', colors=['#28a745', '#dc3545'])
-        ax.set_title("Income vs Expenses")
+              labels=['Ienākumi', 'Izdevumi'], autopct='%1.1f%%', colors=['#28a745', '#dc3545'])
+        ax.set_title("Ienākumi un Izdevumi")
         chart_path = "temp_chart.png"
         fig.savefig(chart_path)
         plt.close()
