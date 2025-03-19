@@ -13,7 +13,8 @@ from reportlab.pdfgen import canvas
 from reportlab.platypus import Table, TableStyle, Image
 from reportlab.lib import colors
 import bcrypt
-
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
 # Databaze izveide
 def init_db():
     conn = sqlite3.connect("budget.db")
@@ -149,7 +150,7 @@ class BudgetApp:
         login_frame = tk.Frame(self.root, bg='#f0f0f0')
         login_frame.pack(expand=True, fill=tk.BOTH, padx=50, pady=50)
         
-        tk.Label(login_frame, text="Budžeta apskāts", font=('Arial', 24, 'bold'), 
+        tk.Label(login_frame, text="Budžeta apskats", font=('Arial', 24, 'bold'), 
                 bg='#f0f0f0', fg='#333').pack(pady=20)
         
         form_frame = tk.Frame(login_frame, bg='#f0f0f0')
@@ -265,7 +266,7 @@ class BudgetApp:
         self.transactions_tree = ttk.Treeview(tree_frame, columns=("Type", "Amount", "Description", "Date"), show="headings")
         self.transactions_tree.heading("Type", text="Tips ↓", command=lambda: self.sort_treeview("Type", False))
         self.transactions_tree.heading("Amount", text="Summa ↓", command=lambda: self.sort_treeview("Amount", False))
-        self.transactions_tree.heading("Description", text="Description ↓", command=lambda: self.sort_treeview("Description", False))
+        self.transactions_tree.heading("Description", text="Apraksts ↓", command=lambda: self.sort_treeview("Description", False))
         self.transactions_tree.heading("Date", text="Datums ↓", command=lambda: self.sort_treeview("Date", False))
         self.transactions_tree.column("Type", width=100, anchor=tk.CENTER)
         self.transactions_tree.column("Amount", width=150, anchor=tk.CENTER)
@@ -287,7 +288,7 @@ class BudgetApp:
         tk.Button(limit_frame, text="Pievienot līmitu", command=self.set_budget_limit,
                  font=('Arial', 12), bg='#007bff', fg='white').pack(side=tk.LEFT)
         
-        # Summary Section
+      
         summary_frame = tk.Frame(main_frame, bg='#ffffff', bd=1, relief=tk.SOLID)
         summary_frame.pack(fill=tk.X, pady=20, padx=10)
         
@@ -309,7 +310,7 @@ class BudgetApp:
         self.budget_limit_info = tk.Label(summary_frame, text="", font=('Arial', 12), bg='#ffffff')
         self.budget_limit_info.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky=tk.W)
         
-        # Control Buttons
+
         control_frame = tk.Frame(main_frame, bg='#f0f0f0')
         control_frame.pack(pady=10)
         
@@ -566,28 +567,31 @@ class BudgetApp:
         )
         if not file_path:
             return
-        
+        pdfmetrics.registerFont(TTFont("Arial", "arial.ttf"))
+  
         fig = plt.Figure(figsize=(8, 6))
         ax = fig.add_subplot(111)
         ax.pie([self.total_income_label.cget("text")[1:], self.total_expense_label.cget("text")[1:]], 
             labels=['Ienākumi', 'Izdevumi'], autopct='%1.1f%%', colors=['#28a745', '#dc3545'])
         ax.set_title("Ienākumi un Izdevumi")
         
+      
         from io import BytesIO
         chart_buffer = BytesIO()
         fig.savefig(chart_buffer, format='png')
         chart_buffer.seek(0)  
         
+
         pdf = canvas.Canvas(file_path, pagesize=letter)
         width, height = letter
         
 
-        pdf.setFont("Helvetica-Bold", 16)
-        pdf.drawString(72, height - 72, "Finanses")
+        pdf.setFont("Arial", 16)
+        pdf.drawString(72, height - 72, "Budžeta pārskats")
         
-
-        pdf.setFont("Helvetica", 12)
-        data = [["Date", "Type", "Amount", "Description"]]
+   
+        pdf.setFont("Arial", 12)
+        data = [["Datums", "Tips", "Summa", "Apraksts"]]
         for row in transactions[1:]:
             data.append([str(row[0]), row[1], f"${row[2]:.2f}", row[3]])
         
@@ -596,7 +600,7 @@ class BudgetApp:
             ('BACKGROUND', (0,0), (-1,0), colors.grey),
             ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
             ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTNAME', (0,0), (-1,0), 'Arial'),
             ('FONTSIZE', (0,0), (-1,0), 12),
             ('BOTTOMPADDING', (0,0), (-1,0), 12),
             ('BACKGROUND', (0,1), (-1,-1), colors.beige),
@@ -605,11 +609,15 @@ class BudgetApp:
         table.wrapOn(pdf, width-144, height)
         table.drawOn(pdf, 72, height - 200)
         
-        pdf.drawImage(chart_buffer, 72, height - 500, width=400, height=300)
+
+        from reportlab.lib.utils import ImageReader
+        chart_image = ImageReader(chart_buffer)
+        pdf.drawImage(chart_image, 72, height - 500, width=400, height=300)
         
-        pdf.setFont("Helvetica-Bold", 14)
-        pdf.drawString(72, height - 550, "Finansu analīze:")
-        pdf.setFont("Helvetica", 12)
+  
+        pdf.setFont("Arial", 14)
+        pdf.drawString(72, height - 550, "Finanšu analīze:")
+        pdf.setFont("Arial", 12)
         pdf.drawString(72, height - 570, f"Ienākumu summa: {self.total_income_label.cget('text')}")
         pdf.drawString(72, height - 590, f"Izdevumu summa: {self.total_expense_label.cget('text')}")
         pdf.drawString(72, height - 610, f"Atlikums: {self.balance_label.cget('text')}")
