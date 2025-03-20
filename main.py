@@ -427,8 +427,8 @@ class BudgetApp:
         
        
         ax1 = fig.add_subplot(221)
-        ax1.set_title("Ienākums un Izdevumi")
-        labels = ['Ienākums', 'Izdevums']
+        ax1.set_title("Ienākumi un Izdevumi")
+        labels = ['Ienākumi', 'Izdevumi']
         sizes = [data['total_income'], data['total_expense']]
         ax1.pie(sizes, labels=labels, autopct='%1.1f%%', colors=['#28a745', '#dc3545'])
         
