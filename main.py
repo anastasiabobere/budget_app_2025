@@ -1,3 +1,4 @@
+# Moduļa importēšana un datubāze inicializācijā
 import sqlite3
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
@@ -15,7 +16,6 @@ from reportlab.lib import colors
 import bcrypt
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
-# Databaze izveide
 def init_db():
     conn = sqlite3.connect("budget.db")
     c = conn.cursor()
@@ -71,7 +71,7 @@ def init_db():
 
 init_db()
 
-# Flask API
+# FLASK API inicializācijā
 app = Flask(__name__)
 
 @app.route("/api/transactions", methods=["GET"])
@@ -127,7 +127,7 @@ def get_summary():
         "budget_limit": budget_limit
     })
 
-# GUI 
+# GUI vai klase BudgetApp
 class BudgetApp:
     def __init__(self, root):
         self.root = root
@@ -142,7 +142,7 @@ class BudgetApp:
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
         self.create_login_widgets()
-
+    # Ekrāna inicializācija funckcija
     def create_login_widgets(self):
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -171,7 +171,7 @@ class BudgetApp:
                  font=('Arial', 12), bg='#007bff', fg='white', width=12).pack(side=tk.LEFT, padx=10)
         tk.Button(btn_frame, text="Ienākt", command=self.login, 
                  font=('Arial', 12), bg='#28a745', fg='white', width=12).pack(side=tk.LEFT, padx=10)
-
+    # Lietotāju reģistrācija funkcija
     def register(self):
         username = self.username_var.get().strip()  
         password = self.password_var.get().strip()
@@ -200,7 +200,7 @@ class BudgetApp:
             messagebox.showerror("Kļūda", "Lietotājvārds jau eksistē!")
         finally:
             conn.close()
-    
+    # Lietotāju pieslēgšana funkcijā
     def login(self):
         username = self.username_var.get().strip()
         password = self.password_var.get().strip()
@@ -232,7 +232,7 @@ class BudgetApp:
             messagebox.showerror("Datubāzes kļūda", f"Tehniskā kļūda: {str(e)}")
         except Exception as e:
             messagebox.showerror("Kritiskā kļūda", f"Negaidīta kļūda: {str(e)}")
-    
+    # Izveidota ekrāna atvēršanas funkcija
     def open_budget_window(self):
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -276,7 +276,7 @@ class BudgetApp:
         self.transactions_tree.tag_configure('expense', background='#f8d7da')
         self.transactions_tree.pack(fill=tk.BOTH, expand=True)
         
-        # Budget Limit Section
+    
         limit_frame = tk.Frame(main_frame, bg='#f0f0f0')
         limit_frame.pack(pady=10, fill=tk.X)
         
@@ -325,7 +325,7 @@ class BudgetApp:
         
         self.load_transactions()
         self.load_budget_limit()
-
+    # Pievienot iznākumus un izdevumus
     def add_transaction(self, trans_type):
         amount = self.amount_var.get()
         description = self.desc_var.get()
@@ -373,7 +373,7 @@ class BudgetApp:
         self.balance_label.config(text=f"${balance:.2f}")
         self.balance_label.config(fg='#28a745' if balance >= 0 else '#dc3545')
         
-        # Check budget limit
+        
         current_month = datetime.now().strftime("%Y-%m")
         conn = sqlite3.connect("budget.db")
         c = conn.cursor()
@@ -409,7 +409,7 @@ class BudgetApp:
         self.transactions_tree.heading(col, 
             text=f"{col} {'↑' if reverse else '↓'}",
             command=lambda: self.sort_treeview(col, not reverse))
-
+    #  radīt finanšu analīze funkcija
     def show_analysis(self):
         analysis_win = tk.Toplevel(self.root)
         analysis_win.title("Budžeta analīze")
@@ -456,7 +456,7 @@ class BudgetApp:
         canvas = FigureCanvasTkAgg(fig, master=analysis_win)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-
+    # Budžeta ierobežojumu noteikšana funkcija
     def set_budget_limit(self):
         limit = self.budget_limit_var.get()
         if limit <= 0:
@@ -493,7 +493,7 @@ class BudgetApp:
             messagebox.showerror("Error", str(e))
         finally:
             conn.close()
-    
+    # Budžeta ierobežojumu ielādēšana funkcija
     def load_budget_limit(self):
         conn = sqlite3.connect("budget.db")
         c = conn.cursor()
@@ -504,7 +504,7 @@ class BudgetApp:
         limit = c.fetchone()
         self.budget_limit_var.set(limit[0] if limit else 0)
         conn.close()
-
+    # Dati eksportēšana uz Excel funkcija
     def export_excel(self):
        
         try:
@@ -546,6 +546,7 @@ class BudgetApp:
             messagebox.showerror("Error", "Nav piekļuves tiesību faila rakstīšanai!")
         except Exception as e:
             messagebox.showerror("Error", f"Eksportēšanas kļūda:\n{str(e)}")
+    # Dati eksportēšana uz PDF funkcija
     def export_pdf(self):
         conn = sqlite3.connect("budget.db")
         c = conn.cursor()
@@ -624,14 +625,14 @@ class BudgetApp:
         
         pdf.save()
         messagebox.showinfo("Success", "PDF ir veiksmīgi ģenerēts!")
-
+    # Izeja funkcija
     def logout(self):
         self.user_id = None
         self.create_login_widgets()
-
+# FLASK API palaišana
 def run_flask():
     app.run(threaded=True, use_reloader=False)  
-
+# Galvenā funkcija
 if __name__ == "__main__":
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()

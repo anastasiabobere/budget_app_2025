@@ -8,13 +8,12 @@
 
 - Instalēt nepieciešamās atkarības.
 
-
-
 ## Manuāli instalējiet šīs atkarības, izmantojot komandas:
 
-- pip install flask pandas matplotlib requests reportlab bcrypt
+- pip install flask pandas matplotlib requests reportlab bcrypt openpyxl
 
 ## Papildus iebūvētās bibliotēkas, kas jau ir Python standartbibliotēkā un nav jāinstalē:
+
 - datetime
 
 -sqlite3
@@ -29,10 +28,8 @@
 
 - python main.py
 
-
 ## Papildus informācija
 
 - Lietotne ir paredzēta Windows un Linux operētājsistēmām un izmanto SQLite kā datubāzi. Saskarne veidota ar Tkinter, un vizualizācijai izmantots Matplotlib.
 
 - Ja rodas problēmas, lūdzu, sazinieties ar izstrādātāju vai pārbaudiet kļūdu ziņojumus terminālī.
-
